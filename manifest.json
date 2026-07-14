@@ -1,0 +1,18 @@
+{
+  "name": "Smart Image Compressor & Background Remover",
+  "short_name": "ImageTool",
+  "description": "本機圖片壓縮與去背工具，100% 隱私保護，完全離線可用。",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#121214",
+  "theme_color": "#ff512f",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

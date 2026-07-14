@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Smart Image Editor - 影壓去背</title>
+  
+  <!-- PWA & iOS Specific Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="影壓去背">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="apple-touch-icon" href="icon.svg">
+  
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  
+  <header>
+    <div class="logo">
+      <img src="icon.svg" alt="Logo">
+      <h1>影壓去背</h1>
+    </div>
+    <button class="pwa-btn" id="install-btn">安裝 App</button>
+  </header>
+
+  <main>
+    <!-- File Upload -->
+    <div class="upload-container" id="drop-zone">
+      <div class="upload-icon">📸</div>
+      <div class="upload-text">點擊或拖放照片到這裡</div>
+      <div class="upload-sub">支援 PNG, JPG, WebP 格式</div>
+      <input type="file" id="file-input" accept="image/*">
+    </div>
+
+    <!-- Workspace -->
+    <div class="workspace" id="workspace">
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab-btn active" data-panel="compress-panel">圖片壓縮</button>
+        <button class="tab-btn" data-panel="remove-panel">點擊去背</button>
+      </div>
+
+      <!-- Preview Canvas -->
+      <div class="canvas-wrapper">
+        <canvas id="editor-canvas"></canvas>
+      </div>
+
+      <!-- Compressor Panel -->
+      <div class="panel active" id="compress-panel">
+        <div class="control-group">
+          <div class="control-label">
+            <span>壓縮品質 (Quality)</span>
+            <span id="quality-val">80%</span>
+          </div>
+          <input type="range" id="compress-quality" min="5" max="100" value="80">
+        </div>
+
+        <div class="control-group">
+          <div class="control-label">
+            <span>尺寸縮放 (Scale)</span>
+            <span id="scale-val">100%</span>
+          </div>
+          <input type="range" id="compress-scale" min="10" max="100" value="100">
+        </div>
+
+        <div class="control-group">
+          <div class="control-label">輸出格式</div>
+          <select id="compress-format">
+            <option value="image/webp">WebP (建議，體積最小)</option>
+            <option value="image/jpeg">JPEG (標準照片格式)</option>
+            <option value="image/png">PNG (無損壓縮)</option>
+          </select>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-item">
+            <span>原始大小:</span>
+            <span id="original-size">0 KB</span>
+          </div>
+          <div class="stat-item">
+            <span>預估大小:</span>
+            <span id="estimated-size" style="color: var(--primary); font-weight: bold;">0 KB</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Background Remover Panel -->
+      <div class="panel" id="remove-panel">
+        <div class="remover-tools">
+          <button class="tool-btn active" id="tool-chroma">
+            <span>🎨</span>色彩去背
+          </button>
+          <button class="tool-btn" id="tool-eraser">
+            <span>🧽</span>手動橡皮擦
+          </button>
+        </div>
+
+        <!-- Chroma Settings -->
+        <div id="chroma-settings">
+          <p class="upload-sub" style="margin-bottom: 10px; text-align: left;">
+            提示：點擊上方預覽圖中的某個顏色，即可去除該顏色背景。
+          </p>
+          <div class="control-group">
+            <div class="control-label">
+              <span>顏色容差 (Tolerance)</span>
+              <span id="tolerance-val">20</span>
+            </div>
+            <input type="range" id="chroma-tolerance" min="1" max="100" value="20">
+          </div>
+        </div>
+
+        <!-- Eraser Settings -->
+        <div id="eraser-settings" style="display: none;">
+          <div class="control-group">
+            <div class="control-label">
+              <span>筆刷大小 (Brush Size)</span>
+              <span id="brush-val">20px</span>
+            </div>
+            <input type="range" id="eraser-brush-size" min="5" max="100" value="20">
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <button class="tool-btn" id="btn-revert" style="flex: 1;">↩️ 還原修改</button>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button class="btn-secondary" id="btn-reset">重新上傳</button>
+        <button class="btn-primary" id="btn-download">💾 下載結果</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- PWA iOS Manual Guide Dialog -->
+  <div class="modal" id="pwa-modal">
+    <div class="modal-content">
+      <button class="modal-close" id="modal-close">✕</button>
+      <h2 style="font-size: 1.3rem;">安裝到 iPhone 主畫面</h2>
+      <p style="color: var(--text-dim); font-size: 0.9rem;">在 Safari 瀏覽器中安裝，享受離線全螢幕體驗：</p>
+      <div class="modal-steps">
+        <div class="modal-step">
+          <div class="step-num">1</div>
+          <div>點擊瀏覽器底部的 <strong>分享按鈕</strong> (或 <span style="font-size:1.2rem;">⎙</span>)</div>
+        </div>
+        <div class="modal-step">
+          <div class="step-num">2</div>
+          <div>在清單中下滑，選擇 <strong>「加入主畫面」</strong></div>
+        </div>
+        <div class="modal-step">
+          <div class="step-num">3</div>
+          <div>點擊右上角的 <strong>「新增」</strong> 即可完成！</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast-msg">已載入照片！</div>
+
+  <script src="app.js"></script>
+</body>
+</html>
